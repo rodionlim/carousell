@@ -149,7 +149,21 @@ type Listing struct {
 
 // Print is a summarized output of a listing printed out to console.
 func (l *Listing) Print() {
-	fmt.Printf("%s - S$%.0f - %s\n%s\n", l.Title, l.Price, l.Condition, l.Url)
+	fmt.Print(l.Sprint())
+}
+
+// Sprint returns a summarized output of a listing.
+func (l *Listing) Sprint() string {
+	return fmt.Sprintf("%s - S$%.0f - %s\n%s\n", l.Title, l.Price, l.Condition, l.Url)
+}
+
+// ShortenListings return a summarized output of a list of listings.
+func ShortenListings(l []Listing) []string {
+	var res []string
+	for _, listing := range l {
+		res = append(res, (&listing).Sprint())
+	}
+	return res
 }
 
 func deref(l []*Listing) []Listing {

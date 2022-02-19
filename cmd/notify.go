@@ -1,15 +1,17 @@
 /*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
+Copyright © 2022 Rodion Lim <rodion.lim@hotmail.com>
 
 */
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
 
 	crs "github.com/rodionlim/carousell/library/carousell"
+	"github.com/rodionlim/carousell/library/log"
 	"github.com/rodionlim/carousell/library/notifier"
 	"github.com/spf13/cobra"
 )
@@ -43,6 +45,7 @@ Slack Channel: %s
 
 `, req.GetSearchTerm(), interval, slackChannel)
 
+		logger := log.Ctx(context.Background())
 		slacker := notifier.NewSlacker()
 		cache := crs.NewCache()
 		listings, err := req.Get()
@@ -50,7 +53,9 @@ Slack Channel: %s
 			fmt.Println("Something unexpected happened")
 			os.Exit(1)
 		}
+		logger.Infof("***Recv initial listings*** \n%v", crs.ShortenListings(listings))
 		cache.Store(listings)
+		logger.Info("Cached initial listings")
 
 		d := time.Minute * time.Duration(interval)
 		ticker := time.NewTicker(d)
@@ -58,12 +63,13 @@ Slack Channel: %s
 			fmt.Printf("Waiting for %d mins before next query\n", interval)
 			<-ticker.C
 			listings, err = req.Get()
+			logger.Infof("***Recv listings*** \n%v", crs.ShortenListings(listings))
 			if err != nil {
 				fmt.Println("Something unexpected happened")
 				os.Exit(1)
 			}
 			cache.ProcessAndStore(listings, func(listing crs.Listing) error {
-				slacker.Notify(slackChannel, fmt.Sprintf("%s - $%f", listing.Title, listing.Price), nil)
+				slacker.Notify(slackChannel, listing.Sprint(), nil)
 				return nil
 			})
 		}
