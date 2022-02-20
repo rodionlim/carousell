@@ -29,6 +29,7 @@ If using an app's oauth access token, ensure that the app has been invited to th
 Flags can be used to modify the search behaviour, e.g. specifying the 
 -r recent flag, to include only recent listings etc.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		setVerbosity(cmd)
 		opts := getOpts(cmd, args)
 		req := crs.NewReq(opts...)
 		interval, _ := cmd.Flags().GetInt("interval")
@@ -51,6 +52,7 @@ Slack Channel: %s
 		listings, err := req.Get()
 		if err != nil {
 			fmt.Println("Something unexpected happened")
+			logger.Error(err.Error())
 			os.Exit(1)
 		}
 		logger.Infof("***Recv initial listings*** \n%v", crs.ShortenListings(listings))
@@ -60,12 +62,13 @@ Slack Channel: %s
 		d := time.Minute * time.Duration(interval)
 		ticker := time.NewTicker(d)
 		for {
-			fmt.Printf("Waiting for %d mins before next query\n", interval)
+			logger.Infof("Waiting for %d mins before next query\n", interval)
 			<-ticker.C
 			listings, err = req.Get()
 			logger.Infof("***Recv listings*** \n%v", crs.ShortenListings(listings))
 			if err != nil {
 				fmt.Println("Something unexpected happened")
+				logger.Error(err.Error())
 				os.Exit(1)
 			}
 			cache.ProcessAndStore(listings, func(listing crs.Listing) error {

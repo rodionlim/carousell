@@ -7,6 +7,7 @@
 package carousell
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/rodionlim/carousell/library/log"
 	"golang.org/x/net/html"
 )
 
@@ -72,6 +74,8 @@ func WithRecent(r *Req) {
 
 // Get gets and parse carousell listing based on user parameters.
 func (r *Req) Get() ([]Listing, error) {
+	logger := log.Ctx(context.Background())
+
 	if err := r.validate(); err != nil {
 		return nil, err
 	}
@@ -86,11 +90,13 @@ func (r *Req) Get() ([]Listing, error) {
 	}
 	url.RawQuery = q.Encode()
 
+	logger.Infof("Send req [%s]", url.String())
 	resp, err := http.Get(url.String())
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	logger.Infof("Recv resp status_code[%v] headers[%v]", resp.StatusCode, resp.Header)
 
 	node, err := html.Parse(resp.Body)
 	if err != nil {

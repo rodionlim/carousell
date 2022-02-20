@@ -4,15 +4,21 @@ Carousell is both a library and CLI tool written in Golang that fetches Carousel
 
 # Installing
 
-Using Carousell is easy. First, use `go install` to install the latest version of the library. This command will install the `carousell` executable along with the library and its dependencies:
+Using Carousell is easy. First, use `go install` to install the latest version of the executable. This command will install the `carousell` executable in `$GOPATH/bin`:
 
 ```
-go install -u github.com/rodionlim/carousell
+go install github.com/rodionlim/carousell@latest
+```
+
+To use the library, `go get` will install the libraries and dependencies for your project.
+
+```
+go get -u github.com/rodionlim/carousell
 ```
 
 # Usage
 
-There are two commands, `get` and `notify`. Flags can be used to modify the search behaviour, e.g. `-r` flag will query for only recent listings.
+There are two commands, `get` and `notify`. Flags can be used to modify the search behaviour, e.g. `-r` flag will query for only recent listings, `-v` flag represents verbose mode and add logging to the output
 
 `get` will fetch the listings and output them to the console.
 
