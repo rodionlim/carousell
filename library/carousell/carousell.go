@@ -73,6 +73,7 @@ func WithRecent(r *Req) {
 }
 
 // Get gets and parse carousell listing based on user parameters.
+// BUG: Get occassionally (very rare) fetches listing that does not take search terms into consideration, this should be handled if polling the function.
 func (r *Req) Get() ([]Listing, error) {
 	logger := log.Ctx(context.Background())
 
@@ -129,13 +130,23 @@ func (c *Cache) Store(listings []Listing) {
 }
 
 // Process accepts a callback that processes a new listing,
-// before storing it in the cache
-func (c *Cache) ProcessAndStore(listings []Listing, cb func(listing Listing) error) {
+// before storing it in the cache.
+//
+// checkListings is a flag that is used to ensure that listings are valid. When all listings are not cached,
+// there is high probability that listings are invalid due to upstream error, since new posts should be infrequent.
+// Set it to false to disable the checks and process all listings.
+func (c *Cache) ProcessAndStore(listings []Listing, cb func(listing Listing) error, checkListings bool) {
+	var toBeAlerted []Listing
 	for _, listing := range listings {
 		_, exists := c.Alerts[listing.ID]
 		if !exists {
-			_ = cb(listing)
+			toBeAlerted = append(toBeAlerted, listing)
 			c.Alerts[listing.ID] = true
+		}
+	}
+	if len(toBeAlerted) != len(listings) || !checkListings {
+		for _, listing := range toBeAlerted {
+			cb(listing)
 		}
 	}
 }

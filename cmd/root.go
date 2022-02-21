@@ -37,14 +37,6 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.carousell.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
 	rootCmd.PersistentFlags().BoolP("recent", "r", false, "Search recent listings")
 	rootCmd.PersistentFlags().IntP("price-floor", "f", 0, "Minimum price of listing")
 	rootCmd.PersistentFlags().IntP("price-ceil", "c", 0, "Maximum price of listing")

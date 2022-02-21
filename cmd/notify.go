@@ -74,7 +74,7 @@ Slack Channel: %s
 			cache.ProcessAndStore(listings, func(listing crs.Listing) error {
 				slacker.Notify(slackChannel, listing.Sprint(), nil)
 				return nil
-			})
+			}, true)
 		}
 	},
 }
@@ -82,15 +82,6 @@ Slack Channel: %s
 func init() {
 	rootCmd.AddCommand(notifyCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// notifyCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// notifyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	notifyCmd.Flags().String("slack-channel", "", "Slack channel id to send notifications, e.g. C0341H4MD1P")
 	notifyCmd.MarkFlagRequired("slack-channel")
 
