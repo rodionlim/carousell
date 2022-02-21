@@ -214,7 +214,7 @@ func traverseText(n *html.Node, texts []string, links []string) ([]string, []str
 }
 
 func parsePrice(px string) float64 {
-	px = strings.Replace(px, "S$", "", 1)
+	px = strings.Replace(strings.Replace(px, "S$", "", 1), ",", "", -1)
 	pxFloat, err := strconv.ParseFloat(px, 64)
 	if err != nil {
 		return 0
