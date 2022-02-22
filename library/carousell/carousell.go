@@ -132,7 +132,7 @@ func (c *Cache) Store(listings []Listing) {
 // Process accepts a callback that processes a new listing,
 // before storing it in the cache.
 //
-// checkListings is a flag that is used to ensure that listings are valid. When all listings are not cached,
+// checkListings is a flag that is used to ensure that listings are valid. When majority listings are not cached,
 // there is high probability that listings are invalid due to upstream error, since new posts should be infrequent.
 // Set it to false to disable the checks and process all listings.
 func (c *Cache) ProcessAndStore(listings []Listing, cb func(listing Listing) error, checkListings bool) {
@@ -144,7 +144,7 @@ func (c *Cache) ProcessAndStore(listings []Listing, cb func(listing Listing) err
 			c.Alerts[listing.ID] = true
 		}
 	}
-	if len(toBeAlerted) != len(listings) || !checkListings {
+	if len(toBeAlerted) >= (len(listings)*4/5) || !checkListings {
 		for _, listing := range toBeAlerted {
 			cb(listing)
 		}

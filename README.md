@@ -2,7 +2,7 @@
 
 Carousell is both a library and CLI tool written in Golang that fetches Carousell listings and notifies users.
 
-# Installing
+# Installation
 
 Using Carousell is easy. First, use `go install` to install the latest version of the executable. This command will install the `carousell` executable in `$GOPATH/bin`:
 
@@ -13,10 +13,16 @@ go install github.com/rodionlim/carousell@latest
 To use the library, `go get` will install the libraries and dependencies for your project.
 
 ```
+go get github.com/rodionlim/carousell
+```
+
+Later, to receive updates, run
+
+```
 go get -u github.com/rodionlim/carousell
 ```
 
-# Usage
+# Executable Usage
 
 There are two commands, `get` and `notify`. Flags can be used to modify the search behaviour, e.g. `-r` flag will query for only recent listings, `-v` flag represents verbose mode and add logging to the output
 
@@ -36,6 +42,15 @@ To get help on the available flags, use the `-h` flag.
 
 ```
 carousell -h
+```
+
+# Quick Start
+
+The following Go code generates the latest 20 listing based on key words specified
+
+```
+r := carousell.NewReq(crs.WithSearch("nintendo switch"))
+r.Get()
 ```
 
 # License
