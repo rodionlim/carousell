@@ -74,7 +74,7 @@ Slack Channel: %s
 			cache.ProcessAndStore(listings, func(listing crs.Listing) error {
 				slacker.Notify(slackChannel, listing.Sprint(), nil)
 				return nil
-			}, true)
+			})
 		}
 	},
 }

@@ -73,7 +73,6 @@ func WithRecent(r *Req) {
 }
 
 // Get gets and parse carousell listing based on user parameters.
-// BUG: Get occassionally (very rare) fetches listing that does not take search terms into consideration, this should be handled if polling the function.
 func (r *Req) Get() ([]Listing, error) {
 	logger := log.Ctx(context.Background())
 
@@ -105,7 +104,44 @@ func (r *Req) Get() ([]Listing, error) {
 	}
 
 	listings := deref(traverseDivs(node, make([]*Listing, 0)))
+	listings = r.sanitize(listings) // Prevent invalid queries from upstream
 	return listings, nil
+}
+
+func (r *Req) sanitize(listings []Listing) []Listing {
+	logger := log.Ctx(context.Background())
+	// Collect list of relevant words to check against listings retrieved from API
+	var terms []string
+	var sb strings.Builder
+	lastIdx := len(r.searchTerm) - 1
+	for i, char := range r.searchTerm {
+		if char == ' ' {
+			terms = append(terms, sb.String())
+			sb.Reset()
+		}
+		if char != '"' {
+			sb.WriteRune(char)
+		}
+		if i == lastIdx {
+			terms = append(terms, sb.String())
+		}
+	}
+
+	var sanitizedListings []Listing
+	for _, listing := range listings {
+		validListing := false
+		for _, term := range terms {
+			if strings.Contains(listing.Title, term) {
+				validListing = true
+				break
+			}
+		}
+		if validListing {
+			sanitizedListings = append(sanitizedListings, listing)
+		}
+	}
+	logger.Infof("Sanitized listings. Original Count[%d]. New Count[%d]\n", len(listings), len(sanitizedListings))
+	return sanitizedListings
 }
 
 // A Cache is a structure that includes utilities,
@@ -131,21 +167,11 @@ func (c *Cache) Store(listings []Listing) {
 
 // Process accepts a callback that processes a new listing,
 // before storing it in the cache.
-//
-// checkListings is a flag that is used to ensure that listings are valid. When majority listings are not cached,
-// there is high probability that listings are invalid due to upstream error, since new posts should be infrequent.
-// Set it to false to disable the checks and process all listings.
-func (c *Cache) ProcessAndStore(listings []Listing, cb func(listing Listing) error, checkListings bool) {
-	var toBeAlerted []Listing
+func (c *Cache) ProcessAndStore(listings []Listing, cb func(listing Listing) error) {
 	for _, listing := range listings {
 		_, exists := c.Alerts[listing.ID]
 		if !exists {
-			toBeAlerted = append(toBeAlerted, listing)
 			c.Alerts[listing.ID] = true
-		}
-	}
-	if len(toBeAlerted) >= (len(listings)*4/5) || !checkListings {
-		for _, listing := range toBeAlerted {
 			cb(listing)
 		}
 	}
